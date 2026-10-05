@@ -70,22 +70,25 @@ abstract class AbstractIndustryDataTable extends DataTable
                 return $row->location->name;
             })
             ->editColumn('activity.activityName', function ($row) {
-                switch ($row->activity->activityName) {
-                    case 'Manufacturing':
-                        return '<i class="fas fa-industry"></i> ' . $row->activity->activityName;
-                    case 'Researching Time Efficiency':
-                        return '<i class="fas fa-hourglass-half"></i> ' . $row->activity->activityName;
-                    case 'Researching Material Efficiency':
-                        return '<i class="fas fa-gem"></i> ' . $row->activity->activityName;
-                    case 'Copying':
-                        return '<i class="fas fa-flask"></i> ' . $row->activity->activityName;
-                    case 'Invention':
-                        return '<i class="fas fa-microscope"></i> ' . $row->activity->activityName;
-                    case 'Reactions':
-                        return '<i class="fas fa-atom"></i> ' . $row->activity->activityName;
-                    default:
-                        return $row->activity->activityName;
-                }
+                // Key the icon off the numeric activityID, not the display name:
+                // the SDE calls activities 3 and 4 "Time Efficiency Research" and
+                // "Material Efficiency Research", so matching the old
+                // "Researching ..." names silently dropped their icons.
+                $icons = [
+                    1 => 'fas fa-industry',       // Manufacturing
+                    3 => 'fas fa-hourglass-half', // Time Efficiency Research
+                    4 => 'fas fa-gem',            // Material Efficiency Research
+                    5 => 'fas fa-flask',          // Copying
+                    8 => 'fas fa-microscope',     // Invention
+                    9 => 'fas fa-atom',           // Reactions
+                ];
+
+                $icon = $icons[$row->activity->activityID] ?? null;
+
+                if (is_null($icon))
+                    return $row->activity->activityName;
+
+                return sprintf('<i class="%s"></i> %s', $icon, $row->activity->activityName);
             })
             ->editColumn('blueprint.typeName', function ($row) {
                 return view('web::partials.type', [
